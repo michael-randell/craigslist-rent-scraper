@@ -5,18 +5,20 @@ require 'pry'
 require_relative './rental.rb'
 
 class Scraper
+  @@doc = nil
+  @@city = nil
 
-  def get_page(city)
+  def get_page
     @@doc ||= Nokogiri::HTML(open("https://#{@@city}.craigslist.org/search/apa?availabilityMode=0&hints=bedsbaths&max_bathrooms=2&max_bedrooms=3&min_bathrooms=2&min_bedrooms=3", "User-Agent" => "foobar"))
   end
 
-  def get_listings(city)
-    self.get_page(city).css(".result-row")
+  def get_listings
+    self.get_page.css(".result-row")
   end
 
   def make_rentals(city)
     @@city = city
-    self.get_listings(@@city).each do |rental|
+    self.get_listings.each do |rental|
       scraped_title = rental.css("a.result-title").text
       scraped_address = rental.css("span.result-hood").text
       #rental.xpath('//span[contains(@class, "result-price")]').first.try(:text)
@@ -45,5 +47,5 @@ class Scraper
   end
 end
 
-Scraper.new.make_rentals("miami")
-Rental.create_csv #outputs csv string
+Scraper.new.make_rentals("miami") #initialize scraper
+puts CSV.parse(Rental.create_csv) #Rental.create_csv creates csv string + CSV.parse to parse csv string
